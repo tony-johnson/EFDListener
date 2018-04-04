@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.CharBuffer;
 import java.time.Duration;
 import org.lsst.sal.SALEvent;
@@ -18,7 +19,7 @@ import org.lsst.sal.efd.event.LargeFileObjectAvailableEvent;
  */
 public class Main {
 
-    public static void main(String[] args) throws SALException, MalformedURLException, IOException {
+    public static void main(String[] args) throws SALException, MalformedURLException, IOException, URISyntaxException {
         SALEFD efd = SALEFD.create();
         for (;;) {
             SALEvent nextEvent = efd.getNextEvent(Duration.ofSeconds(60));
@@ -28,14 +29,29 @@ public class Main {
                     LargeFileObjectAvailableEvent lfo = (LargeFileObjectAvailableEvent) nextEvent;
                     URI url = URI.create(lfo.getURL());
                     System.out.println("Reading..." + url);
-                    try (Reader reader = new InputStreamReader(url.toURL().openStream())) {
-                        CharBuffer buffer = CharBuffer.allocate(80);
-                        for (;;) {
-                            int l = reader.read(buffer);
-                            if (l == 0) break;
-                            System.out.println(buffer);
-                        }
+                    dumpFITSURL(uri);
+                }
+            }
+        }
+
+    }
+
+    private static void dumpFITSURL(URI url) throws MalformedURLException, IOException {
+        try (Reader reader = new InputStreamReader(url.toURL().openStream())) {
+            CharBuffer buffer = CharBuffer.allocate(80);
+            outer:
+            for (;;) {
+                buffer.clear();
+                while (buffer.hasRemaining()) {
+                    int l = reader.read(buffer);
+                    if (l < 0) {
+                        break outer;
                     }
+                }
+                buffer.flip();
+                String line = buffer.toString();
+                if (line.trim().length() > 0) {
+                    System.out.println(buffer);
                 }
             }
         }
