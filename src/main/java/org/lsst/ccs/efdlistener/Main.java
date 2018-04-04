@@ -21,6 +21,7 @@ public class Main {
                 if (nextEvent instanceof LargeFileObjectAvailableEvent) {
                     LargeFileObjectAvailableEvent lfo = (LargeFileObjectAvailableEvent) nextEvent;
                     URI url = URI.create(lfo.getURL());
+                    System.out.println("Reading..."+url);
                     String content = url.toASCIIString();
                     System.out.println(content);
                 }
