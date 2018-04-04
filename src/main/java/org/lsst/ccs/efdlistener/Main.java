@@ -1,9 +1,11 @@
 package org.lsst.ccs.efdlistener;
 
+import java.net.URI;
 import java.time.Duration;
 import org.lsst.sal.SALEvent;
 import org.lsst.sal.SALException;
 import org.lsst.sal.efd.SALEFD;
+import org.lsst.sal.efd.event.LargeFileObjectAvailableEvent;
 
 /**
  *
@@ -16,6 +18,12 @@ public class Main {
             SALEvent nextEvent = efd.getNextEvent(Duration.ofSeconds(60));
             if (nextEvent != null) {
                 System.out.println("Got "+nextEvent);
+                if (nextEvent instanceof LargeFileObjectAvailableEvent) {
+                    LargeFileObjectAvailableEvent lfo = (LargeFileObjectAvailableEvent) nextEvent;
+                    URI url = URI.create(lfo.getURL());
+                    String content = url.toASCIIString();
+                    System.out.println(content);
+                }
             }
         }
     }
